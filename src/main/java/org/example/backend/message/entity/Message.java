@@ -9,6 +9,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "message")
 @Getter
+
 @Setter
 @Builder
 @NoArgsConstructor
