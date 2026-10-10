@@ -13,7 +13,7 @@ spring:
     import: "optional:file:.env[.properties]"
 
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/hrayfi}
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/hrayfi}
     username: ${DB_USERNAME:hrayfi}
     password: ${DB_PASSWORD:hrayfi}
     driver-class-name: org.postgresql.Driver
@@ -65,3 +65,5 @@ logging:
   level:
     org.hibernate.SQL: INFO
     org.springframework.security: INFO
+
+
