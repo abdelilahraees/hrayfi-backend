@@ -1,6 +1,9 @@
 package org.example.backend.dashboard.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.annonce.repository.AnnonceRepository;
+import org.example.backend.avis.repository.AvisAnnonceRepository;
+import org.example.backend.common.util.AggregateRows;
 import org.example.backend.dashboard.dto.ArtisanDashboardDTO;
 import org.example.backend.dashboard.dto.ClientDashboardDTO;
 import org.example.backend.demande.dto.DemandeServiceDTO;
@@ -29,6 +32,8 @@ public class DashboardService {
     private final DemandeServiceRepository demandeRepository;
     private final EvaluationRepository evaluationRepository;
     private final DemandeServiceMapper demandeMapper;
+    private final AnnonceRepository annonceRepository;
+    private final AvisAnnonceRepository avisRepository;
 
     @Transactional(readOnly = true)
     public ArtisanDashboardDTO dashboardArtisan(Long artisanId) {
@@ -44,25 +49,31 @@ public class DashboardService {
         BigDecimal caMois = demandeRepository.chiffreAffairesArtisanDepuis(artisanId, debutMois);
 
         Object[] stats = evaluationRepository.statsForArtisan(artisanId);
-        double noteMoyenne = stats != null && stats[0] != null ? ((Number) stats[0]).doubleValue() : 0.0;
-        long nbEval        = stats != null && stats[1] != null ? ((Number) stats[1]).longValue()   : 0L;
+        double noteMoyenne = AggregateRows.average(stats);
+        long nbEval        = AggregateRows.count(stats);
+
+        Object[] statsAvis = avisRepository.statsForArtisan(artisanId);
+        long nbAnnonces        = annonceRepository.countByArtisanId(artisanId);
+        long nbAnnoncesActives = annonceRepository.countByArtisanIdAndActiveTrue(artisanId);
 
         long totalDecisions = acceptees + termineesTotal + refusees;
         double tauxAcceptation = totalDecisions == 0
                 ? 0.0
                 : (double) (acceptees + termineesTotal) / totalDecisions;
 
-        List<DemandeServiceDTO> prochaines = demandeRepository.findByArtisanId(
+        // Filtre au niveau SQL : sinon les 5 premières demandes peuvent ne contenir aucune ACCEPTEE
+        List<DemandeServiceDTO> prochaines = demandeRepository.findByArtisanIdAndStatut(
                         artisanId,
+                        StatutDemande.ACCEPTEE,
                         PageRequest.of(0, 5, Sort.by("dateIntervention").ascending()))
-                .stream()
-                .filter(d -> d.getStatut() == StatutDemande.ACCEPTEE)
                 .map(demandeMapper::toDto)
-                .toList();
+                .getContent();
 
         return new ArtisanDashboardDTO(
                 enAttente, acceptees, termineesCM, caMois,
                 round2(noteMoyenne), nbEval, round2(tauxAcceptation),
+                nbAnnonces, nbAnnoncesActives,
+                round2(AggregateRows.average(statsAvis)), AggregateRows.count(statsAvis),
                 prochaines
         );
     }
@@ -80,7 +91,9 @@ public class DashboardService {
                 .map(demandeMapper::toDto)
                 .getContent();
 
-        return new ClientDashboardDTO(enAttente, acceptees, termineesT, depense, dernieres);
+        long nbAvis = avisRepository.countByClientId(clientId);
+
+        return new ClientDashboardDTO(enAttente, acceptees, termineesT, depense, nbAvis, dernieres);
     }
 
     private static Instant debutDuMoisCourant() {

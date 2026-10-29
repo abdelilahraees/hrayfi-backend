@@ -30,6 +30,9 @@ public interface DemandeServiceRepository extends JpaRepository<DemandeService, 
     @EntityGraph(attributePaths = {"client", "artisan"})
     Page<DemandeService> findByArtisanId(Long artisanId, Pageable pageable);
 
+    @EntityGraph(attributePaths = {"client", "artisan"})
+    Page<DemandeService> findByArtisanIdAndStatut(Long artisanId, StatutDemande statut, Pageable pageable);
+
     // --- requêtes dashboard ---
 
     long countByArtisanIdAndStatut(Long artisanId, StatutDemande statut);
