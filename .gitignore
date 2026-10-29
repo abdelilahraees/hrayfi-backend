@@ -43,3 +43,6 @@ src/main/resources/application-secrets.yml
 src/main/resources/application-secrets.yaml
 src/main/resources/application-secrets.properties
 
+
+### Photos envoyées par les utilisateurs ###
+uploads/

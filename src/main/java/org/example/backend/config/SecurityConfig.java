@@ -75,7 +75,11 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/ws/**"           // handshake WebSocket (le JWT est validé par l'interceptor STOMP si besoin)
                         ).permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/artisans/**").permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/artisans/**",
+                                "/api/annonces/**",
+                                "/uploads/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
