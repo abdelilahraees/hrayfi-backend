@@ -1,5 +1,6 @@
 package org.example.backend.message.dto;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 public record MessageDTO(
@@ -7,5 +8,9 @@ public record MessageDTO(
         Long expediteurId,
         Long destinataireId,
         String contenu,
-        Instant timestamp
+        Instant timestamp,
+        Long annonceId,
+        String annonceTitre,
+        BigDecimal prixPropose,
+        boolean lu
 ) {}

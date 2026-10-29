@@ -14,6 +14,8 @@ public interface DemandeServiceMapper {
     @Mapping(target = "clientNomComplet", source = "client", qualifiedByName = "fullName")
     @Mapping(target = "artisanId",        source = "artisan.id")
     @Mapping(target = "artisanNomComplet", source = "artisan", qualifiedByName = "fullName")
+    @Mapping(target = "annonceId",         source = "annonce.id")
+    @Mapping(target = "annonceTitre",      source = "annonce.titre")
     DemandeServiceDTO toDto(DemandeService entity);
 
     @Named("fullName")
