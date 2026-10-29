@@ -52,6 +52,7 @@ server:
 #  Config applicative (préfixe `app`)
 # ------------------------------------------------------------
 app:
+  seed-demo: ${SEED_DEMO:false}   # true : crée des artisans, annonces et avis de démonstration
   security:
     jwt:
       # Secret base64. Générer avec : openssl rand -base64 48
