@@ -6,5 +6,6 @@ public enum NotificationType {
     DEMANDE_REFUSEE,
     DEMANDE_TERMINEE,
     NOUVELLE_EVALUATION,
+    NOUVEL_AVIS,
     NOUVEAU_MESSAGE
 }
