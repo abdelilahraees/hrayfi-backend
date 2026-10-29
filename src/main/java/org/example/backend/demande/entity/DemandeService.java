@@ -2,6 +2,7 @@ package org.example.backend.demande.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.example.backend.annonce.entity.Annonce;
 import org.example.backend.user.entity.Artisan;
 import org.example.backend.user.entity.Client;
 import org.springframework.data.annotation.CreatedDate;
@@ -46,6 +47,15 @@ public class DemandeService {
 
     @Column(name = "prix_final", precision = 10, scale = 2)
     private BigDecimal prixFinal;
+
+    /** Annonce à l'origine de la demande (optionnel). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "annonce_id", foreignKey = @ForeignKey(name = "fk_demande_annonce"))
+    private Annonce annonce;
+
+    /** Prix négocié dans la messagerie avant la demande (optionnel). */
+    @Column(name = "prix_convenu", precision = 10, scale = 2)
+    private BigDecimal prixConvenu;
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

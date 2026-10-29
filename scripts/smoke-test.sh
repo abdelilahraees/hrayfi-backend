@@ -203,9 +203,9 @@ COUNT=$(echo "$RECUES" | jq -r '.content | length')
 ok "L'artisan voit ${COUNT} demande(s)"
 
 # =============================================================================
-step "Accès sans token → 403"
+step "Accès sans token → 401"
 # =============================================================================
-http_call GET /api/demandes/mes-demandes --expect 403 > /dev/null
+http_call GET /api/demandes/mes-demandes --expect 401 > /dev/null
 ok "Endpoint protégé bien verrouillé"
 
 # =============================================================================
@@ -215,6 +215,49 @@ BAD=$(jq -nc --argjson aid "$ARTISAN_ID" --arg d "$INTERVENTION_DATE" \
       '{artisanId: $aid, description: "", dateIntervention: $d}')
 http_call POST /api/demandes --token "$CLIENT_TOKEN" --data "$BAD" --expect 400 > /dev/null
 ok "400 renvoyé sur payload invalide (Bean Validation OK)"
+
+# =============================================================================
+step "ARTISAN publie une annonce avec une photo (multipart)"
+# =============================================================================
+IMG=$(mktemp --suffix=.png)
+# PNG 1x1 pixel
+printf '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82' > "$IMG"
+CODE=$(curl -sS -o /tmp/resp.json -w "%{http_code}" -X POST "${BASE_URL}/api/annonces" \
+       -H "Authorization: Bearer ${ARTISAN_TOKEN}" \
+       -F 'data={"titre":"Réparation de fuites","description":"Fuites, débouchage et chauffe-eau, intervention rapide.","prixMin":150,"prixMax":500};type=application/json' \
+       -F "images=@${IMG};type=image/png")
+rm -f "$IMG"
+[[ "$CODE" == "201" ]] || { cat /tmp/resp.json; fail "Publication d'annonce : HTTP ${CODE}"; }
+ANNONCE_ID=$(jq -r '.id' /tmp/resp.json)
+NB_IMAGES=$(jq -r '.images | length' /tmp/resp.json)
+ok "Annonce créée id=${ANNONCE_ID} avec ${NB_IMAGES} photo(s)"
+
+# =============================================================================
+step "Recherche publique filtrée par métier"
+# =============================================================================
+RESULTS=$(http_call GET "/api/annonces?metier=Plombier&q=fuite")
+COUNT=$(echo "$RESULTS" | jq -r '.totalElements')
+[[ "$COUNT" -ge 1 ]] || fail "La recherche devrait trouver l'annonce"
+ok "La recherche trouve ${COUNT} annonce(s)"
+
+# =============================================================================
+step "CLIENT note et commente l'annonce"
+# =============================================================================
+http_call POST "/api/annonces/${ANNONCE_ID}/avis" --token "$CLIENT_TOKEN" \
+    --data '{"note": 4, "commentaire": "Rapide et soigné"}' > /dev/null
+NOTE=$(http_call GET "/api/annonces/${ANNONCE_ID}" | jq -r '.noteMoyenne')
+[[ "$NOTE" == "4" || "$NOTE" == "4.0" ]] || fail "Note moyenne attendue 4, reçue : $NOTE"
+ok "Note moyenne de l'annonce = ${NOTE}"
+
+# =============================================================================
+step "CLIENT propose un prix à l'ARTISAN via la messagerie"
+# =============================================================================
+MSG=$(jq -nc --argjson to "$ARTISAN_ID" --argjson a "$ANNONCE_ID" \
+      '{destinataireId: $to, contenu: "Je vous propose 300 MAD", annonceId: $a, prixPropose: 300}')
+http_call POST /api/messages --token "$CLIENT_TOKEN" --data "$MSG" --expect 201 > /dev/null
+NON_LUS=$(http_call GET /api/messages/conversations --token "$ARTISAN_TOKEN" | jq -r '.[0].nonLus')
+[[ "$NON_LUS" -ge 1 ]] || fail "L'artisan devrait avoir un message non lu"
+ok "L'artisan a ${NON_LUS} message(s) non lu(s)"
 
 # =============================================================================
 echo -e "\n${BOLD}${GREEN}✅ Tous les tests passent (${STEP} étapes).${NC}"

@@ -21,14 +21,17 @@ public interface DemandeServiceRepository extends JpaRepository<DemandeService, 
      * (JOIN FETCH automatique) au lieu d'une requête supplémentaire par demande.
      */
     @Override
-    @EntityGraph(attributePaths = {"client", "artisan"})
+    @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
     Optional<DemandeService> findById(Long id);
 
-    @EntityGraph(attributePaths = {"client", "artisan"})
+    @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
     Page<DemandeService> findByClientId(Long clientId, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"client", "artisan"})
+    @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
     Page<DemandeService> findByArtisanId(Long artisanId, Pageable pageable);
+
+    @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
+    Page<DemandeService> findByArtisanIdAndStatut(Long artisanId, StatutDemande statut, Pageable pageable);
 
     // --- requêtes dashboard ---
 

@@ -13,5 +13,9 @@ public record ArtisanDashboardDTO(
         double noteMoyenne,
         long nbEvaluations,
         double tauxAcceptation,            // 0.0 à 1.0 ; 0 si pas d'historique
+        long nbAnnonces,
+        long nbAnnoncesActives,
+        double noteMoyenneAnnonces,        // moyenne des avis laissés sur ses annonces
+        long nbAvisAnnonces,
         List<DemandeServiceDTO> prochainesInterventions
 ) {}

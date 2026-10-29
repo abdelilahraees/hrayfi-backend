@@ -10,5 +10,6 @@ public record ClientDashboardDTO(
         long demandesAcceptees,
         long demandesTermineesTotal,
         BigDecimal totalDepense,
+        long nbAvisDonnes,
         List<DemandeServiceDTO> dernieresDemandes
 ) {}
