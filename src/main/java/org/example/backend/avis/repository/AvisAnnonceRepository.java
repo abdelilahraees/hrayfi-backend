@@ -16,6 +16,8 @@ public interface AvisAnnonceRepository extends JpaRepository<AvisAnnonce, Long> 
     @EntityGraph(attributePaths = {"annonce", "client"})
     Optional<AvisAnnonce> findById(Long id);
 
+    long countByClientId(Long clientId);
+
     Optional<AvisAnnonce> findByAnnonceIdAndClientId(Long annonceId, Long clientId);
 
     @EntityGraph(attributePaths = {"annonce", "client"})
