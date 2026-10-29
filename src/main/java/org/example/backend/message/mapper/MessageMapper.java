@@ -10,5 +10,7 @@ public interface MessageMapper {
 
     @Mapping(target = "expediteurId",   source = "expediteur.id")
     @Mapping(target = "destinataireId", source = "destinataire.id")
+    @Mapping(target = "annonceId",      source = "annonce.id")
+    @Mapping(target = "annonceTitre",   source = "annonce.titre")
     MessageDTO toDto(Message entity);
 }

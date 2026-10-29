@@ -1,6 +1,8 @@
 package org.example.backend.demande.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.backend.annonce.entity.Annonce;
+import org.example.backend.annonce.repository.AnnonceRepository;
 import org.example.backend.common.exception.BusinessException;
 import org.example.backend.common.exception.ResourceNotFoundException;
 import org.example.backend.common.exception.UnauthorizedActionException;
@@ -38,6 +40,7 @@ public class DemandeServiceService {
     private final ArtisanRepository artisanRepository;
     private final DemandeServiceMapper mapper;
     private final NotificationService notificationService;
+    private final AnnonceRepository annonceRepository;
 
     @Transactional
     public DemandeServiceDTO creerDemande(Long clientId, CreateDemandeRequest req) {
@@ -46,11 +49,22 @@ public class DemandeServiceService {
         Artisan artisan = artisanRepository.findById(req.artisanId())
                 .orElseThrow(() -> ResourceNotFoundException.of("Artisan", req.artisanId()));
 
+        Annonce annonce = null;
+        if (req.annonceId() != null) {
+            annonce = annonceRepository.findById(req.annonceId())
+                    .orElseThrow(() -> ResourceNotFoundException.of("Annonce", req.annonceId()));
+            if (!annonce.getArtisan().getId().equals(artisan.getId())) {
+                throw new IllegalArgumentException("Cette annonce n'appartient pas à l'artisan choisi");
+            }
+        }
+
         DemandeService demande = DemandeService.builder()
                 .client(client)
                 .artisan(artisan)
+                .annonce(annonce)
                 .description(req.description())
                 .dateIntervention(req.dateIntervention())
+                .prixConvenu(req.prixConvenu())
                 .statut(StatutDemande.EN_ATTENTE)
                 .build();
 
