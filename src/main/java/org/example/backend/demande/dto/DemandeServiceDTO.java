@@ -19,6 +19,9 @@ public record DemandeServiceDTO(
         Instant dateIntervention,
         StatutDemande statut,
         BigDecimal prixFinal,
+        Long annonceId,
+        String annonceTitre,
+        BigDecimal prixConvenu,
         Instant createdAt,
         Instant updatedAt
 ) {}
