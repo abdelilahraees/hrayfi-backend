@@ -47,6 +47,7 @@ public class DemandeServiceService {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> ResourceNotFoundException.of("Client", clientId));
         Artisan artisan = artisanRepository.findById(req.artisanId())
+                .filter(Artisan::isValide) // un compte en attente, refusé ou suspendu ne reçoit pas de demandes
                 .orElseThrow(() -> ResourceNotFoundException.of("Artisan", req.artisanId()));
 
         Annonce annonce = null;

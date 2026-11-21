@@ -78,6 +78,17 @@ public class AvisService {
         if (!avis.getClient().getId().equals(clientId)) {
             throw new UnauthorizedActionException("Vous ne pouvez supprimer que vos propres avis");
         }
+        supprimerEtRecalculer(avis);
+    }
+
+    /** Modération : un administrateur peut retirer n'importe quel avis. */
+    @Transactional
+    public void supprimerAdmin(Long avisId) {
+        supprimerEtRecalculer(avisRepository.findById(avisId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Avis", avisId)));
+    }
+
+    private void supprimerEtRecalculer(AvisAnnonce avis) {
         Annonce annonce = avis.getAnnonce();
         avisRepository.delete(avis);
         avisRepository.flush();

@@ -3,6 +3,7 @@ package org.example.backend.security;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.user.entity.AppUser;
+import org.example.backend.user.entity.Artisan;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,6 +24,11 @@ public class AppUserPrincipal implements UserDetails {
 
     public Long getId() {
         return user.getId();
+    }
+
+    /** Un artisan non validé (en attente, refusé ou suspendu) ne peut ni se connecter ni utiliser un ancien jeton. */
+    public boolean isActif() {
+        return !(user instanceof Artisan artisan) || artisan.isValide();
     }
 
     @Override

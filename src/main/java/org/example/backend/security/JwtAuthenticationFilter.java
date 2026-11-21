@@ -51,6 +51,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String email = jwtService.extractEmail(claims);
         UserDetails user = userDetailsService.loadUserByUsername(email);
+        // Compte artisan suspendu ou plus validé depuis l'émission du jeton : requête traitée comme anonyme (401)
+        if (user instanceof AppUserPrincipal principal && !principal.isActif()) return;
 
         UsernamePasswordAuthenticationToken auth =
                 new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());

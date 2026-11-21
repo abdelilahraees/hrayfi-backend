@@ -5,6 +5,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 
 @Entity
 @Table(name = "artisan")
@@ -32,4 +33,21 @@ public class Artisan extends AppUser {
     @Column(nullable = false, length = 20)
     @Builder.Default
     private Disponibilite disponibilite = Disponibilite.DISPONIBLE;
+
+    /** Un nouveau compte attend la validation d'un administrateur avant toute connexion. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "statut_validation", nullable = false, length = 20)
+    @Builder.Default
+    private StatutValidation statutValidation = StatutValidation.EN_ATTENTE;
+
+    /** Raison communiquée à l'artisan en cas de refus ou de suspension */
+    @Column(name = "motif_refus", columnDefinition = "TEXT")
+    private String motifRefus;
+
+    @Column(name = "valide_le")
+    private Instant valideLe;
+
+    public boolean isValide() {
+        return statutValidation == StatutValidation.VALIDE;
+    }
 }
