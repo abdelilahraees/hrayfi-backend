@@ -13,6 +13,7 @@ import org.example.backend.user.repository.ClientRepository;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ import java.util.List;
  */
 @Component
 @ConditionalOnProperty(name = "app.seed-demo", havingValue = "true")
+@Order(1) // avant FakeDataSeeder, qui rattache des données aux comptes de démonstration
 @RequiredArgsConstructor
 @Slf4j
 public class DemoDataSeeder implements ApplicationRunner {
@@ -100,6 +102,7 @@ public class DemoDataSeeder implements ApplicationRunner {
                     .metier(d.metier()).ville(d.ville()).tarifHoraire(BigDecimal.valueOf(d.tarif()))
                     .description("Artisan " + d.metier().toLowerCase() + " à " + d.ville() + ".")
                     .disponibilite(Disponibilite.DISPONIBLE)
+                    .statutValidation(StatutValidation.VALIDE).valideLe(java.time.Instant.now())
                     .build());
 
             Annonce annonce = Annonce.builder()

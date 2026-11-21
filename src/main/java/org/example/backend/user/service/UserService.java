@@ -64,6 +64,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public ArtisanPublicDTO artisanPublic(Long id) {
         return artisanRepository.findById(id)
+                .filter(Artisan::isValide)
                 .map(this::toPublic)
                 .orElseThrow(() -> ResourceNotFoundException.of("Artisan", id));
     }
