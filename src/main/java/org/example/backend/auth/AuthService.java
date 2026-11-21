@@ -1,6 +1,7 @@
 package org.example.backend.auth;
 
 import org.example.backend.common.exception.UnauthorizedActionException;
+import org.example.backend.common.util.Telephone;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.auth.dto.*;
 import org.example.backend.common.exception.BusinessException;
@@ -40,6 +41,7 @@ public class AuthService {
                 .nom(req.nom())
                 .prenom(req.prenom())
                 .role(Role.CLIENT)
+                .telephone(Telephone.normaliser(req.telephone()))
                 .adresse(req.adresse())
                 .preferences(req.preferences())
                 .build();
@@ -58,6 +60,7 @@ public class AuthService {
                 .nom(req.nom())
                 .prenom(req.prenom())
                 .role(Role.ARTISAN)
+                .telephone(Telephone.normaliser(req.telephone()))
                 .metier(req.metier())
                 .tarifHoraire(req.tarifHoraire())
                 .description(req.description())
@@ -65,6 +68,7 @@ public class AuthService {
                 .disponibilite(Disponibilite.DISPONIBLE)
                 .build();
 
+        artisan.positionnerSurVille(); // position approximative, l'artisan pourra la préciser sur la carte
         Artisan saved = artisanRepository.save(artisan);
         // Pas de connexion automatique : le compte doit d'abord être validé par un administrateur
         return new AuthResponse(null, "Bearer", 0, saved.getId(), saved.getEmail(), saved.getRole(), saved.getStatutValidation());

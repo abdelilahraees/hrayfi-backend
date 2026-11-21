@@ -10,6 +10,8 @@ import org.example.backend.annonce.dto.AnnonceDTO;
 import org.example.backend.avis.dto.AvisDTO;
 import org.example.backend.demande.dto.DemandeServiceDTO;
 import org.example.backend.demande.entity.StatutDemande;
+import org.example.backend.paiement.dto.EnregistrerPaiementRequest;
+import org.example.backend.security.AppUserPrincipal;
 import org.example.backend.user.entity.Role;
 import org.example.backend.user.entity.StatutValidation;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -48,6 +51,35 @@ public class AdminController {
     @Operation(summary = "Valider, refuser ou suspendre un artisan (motif obligatoire pour un refus ou une suspension)")
     public AdminArtisanDTO changerStatut(@PathVariable Long id, @Valid @RequestBody ChangerStatutRequest req) {
         return adminService.changerStatut(id, req);
+    }
+
+    @GetMapping("/comptes")
+    @Operation(summary = "Comptes artisans : offre Pro, total payé, mise en avant (filtre TOUS, A_RELANCER, PAYES, OFFERTS, EXPIRES)")
+    public Page<AdminCompteDTO> comptes(@RequestParam(defaultValue = "TOUS") String filtre,
+                                        @RequestParam(required = false) String q,
+                                        @PageableDefault(size = 15, sort = "proJusquAu", direction = Sort.Direction.ASC)
+                                        Pageable pageable) {
+        return adminService.comptes(filtre, q, pageable);
+    }
+
+    @GetMapping("/comptes/{id}")
+    @Operation(summary = "Fiche d'un compte : paiements et annonces")
+    public AdminCompteDetailDTO compte(@PathVariable Long id) {
+        return adminService.compte(id);
+    }
+
+    @PostMapping("/comptes/{id}/paiements")
+    @ResponseStatus(HttpStatus.CREATED)
+    @Operation(summary = "Enregistrer un paiement encaissé (CashPlus, Wafacash, virement, espèces) : prolonge le Pro ou met une annonce en avant")
+    public AdminCompteDetailDTO enregistrerPaiement(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id,
+                                                    @Valid @RequestBody EnregistrerPaiementRequest req) {
+        return adminService.enregistrerPaiement(principal.getId(), id, req);
+    }
+
+    @PatchMapping("/comptes/{id}/note")
+    @Operation(summary = "Notes de suivi de l'équipe sur un artisan (appels, relances)")
+    public AdminCompteDTO note(@PathVariable Long id, @Valid @RequestBody NoteAdminRequest req) {
+        return adminService.modifierNote(id, req.note());
     }
 
     @GetMapping("/utilisateurs")

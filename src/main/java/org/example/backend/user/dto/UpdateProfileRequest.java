@@ -12,11 +12,15 @@ import java.math.BigDecimal;
 public record UpdateProfileRequest(
         @Size(min = 1, max = 80) String nom,
         @Size(min = 1, max = 80) String prenom,
+        @Size(max = 25) String telephone,
         @Size(max = 255) String adresse,
         @Size(max = 2000) String preferences,
         @Size(min = 2, max = 100) String metier,
         @DecimalMin("0.00") @Digits(integer = 8, fraction = 2) BigDecimal tarifHoraire,
         @Size(max = 5000) String description,
         @Size(max = 100) String ville,
-        Disponibilite disponibilite
+        Disponibilite disponibilite,
+        /** Position choisie sur la carte (les deux ou aucune) */
+        @DecimalMin("-90") @DecimalMax("90") Double latitude,
+        @DecimalMin("-180") @DecimalMax("180") Double longitude
 ) {}

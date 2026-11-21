@@ -44,6 +44,10 @@ public abstract class AppUser {
     @Column(nullable = false, length = 20)
     private Role role;
 
+    /** Format international normalisé, ex. +212612345678 */
+    @Column(length = 20)
+    private String telephone;
+
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

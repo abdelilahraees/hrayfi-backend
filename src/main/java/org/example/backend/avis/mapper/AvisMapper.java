@@ -14,6 +14,7 @@ public interface AvisMapper {
     @Mapping(target = "annonceTitre",     source = "annonce.titre")
     @Mapping(target = "clientId",         source = "client.id")
     @Mapping(target = "clientNomComplet", source = "client", qualifiedByName = "fullName")
+    @Mapping(target = "verifie", ignore = true) // calculé par AvisService
     AvisDTO toDto(AvisAnnonce entity);
 
     @Named("fullName")

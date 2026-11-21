@@ -63,6 +63,8 @@ public interface DemandeServiceRepository extends JpaRepository<DemandeService, 
 
     long countByStatut(StatutDemande statut);
 
+    boolean existsByClientIdAndArtisanIdAndStatut(Long clientId, Long artisanId, StatutDemande statut);
+
     /** Administration : toutes les demandes, filtrées par statut (null = toutes). */
     @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
     @Query("SELECT d FROM DemandeService d WHERE (:statut IS NULL OR d.statut = :statut)")
