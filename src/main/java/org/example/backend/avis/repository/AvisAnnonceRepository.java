@@ -44,4 +44,17 @@ public interface AvisAnnonceRepository extends JpaRepository<AvisAnnonce, Long> 
            WHERE a.annonce.artisan.id = :artisanId
            """)
     Object[] statsForArtisan(@Param("artisanId") Long artisanId);
+
+    /** Administration : modération des avis, filtrés par note maximale (5 = toutes) et texte libre. */
+    @EntityGraph(attributePaths = {"annonce", "client"})
+    @Query("""
+           SELECT a FROM AvisAnnonce a
+           WHERE a.note <= :noteMax
+             AND (:q = '' OR LOWER(a.commentaire) LIKE :q OR LOWER(a.annonce.titre) LIKE :q
+                          OR LOWER(a.client.nom) LIKE :q OR LOWER(a.client.prenom) LIKE :q)
+           """)
+    Page<AvisAnnonce> adminSearch(@Param("noteMax") int noteMax, @Param("q") String q, Pageable pageable);
+
+    @Query("SELECT AVG(a.note) FROM AvisAnnonce a")
+    Double noteMoyenneGlobale();
 }

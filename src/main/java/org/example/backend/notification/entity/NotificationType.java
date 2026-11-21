@@ -7,5 +7,6 @@ public enum NotificationType {
     DEMANDE_TERMINEE,
     NOUVELLE_EVALUATION,
     NOUVEL_AVIS,
-    NOUVEAU_MESSAGE
+    NOUVEAU_MESSAGE,
+    COMPTE_VALIDE
 }

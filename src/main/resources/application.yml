@@ -53,6 +53,7 @@ server:
 # ------------------------------------------------------------
 app:
   seed-demo: ${SEED_DEMO:false}   # true : crée des artisans, annonces et avis de démonstration
+  seed-fake: ${SEED_FAKE:false}   # true : ajoute des données factices en volume (pagination, tableaux de bord)
   security:
     jwt:
       # Secret base64. Générer avec : openssl rand -base64 48

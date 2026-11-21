@@ -2,6 +2,7 @@ package org.example.backend.annonce.repository;
 
 import org.example.backend.annonce.dto.AnnonceSearchCriteria;
 import org.example.backend.annonce.entity.Annonce;
+import org.example.backend.user.entity.StatutValidation;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
@@ -25,7 +26,10 @@ public final class AnnonceSpecifications {
     }
 
     private static Specification<Annonce> active() {
-        return (root, query, cb) -> cb.isTrue(root.get("active"));
+        // Annonce en ligne d'un artisan validé : les comptes en attente, refusés ou suspendus sont masqués
+        return (root, query, cb) -> cb.and(
+                cb.isTrue(root.get("active")),
+                cb.equal(root.get("artisan").get("statutValidation"), StatutValidation.VALIDE));
     }
 
     private static Specification<Annonce> keyword(String q) {

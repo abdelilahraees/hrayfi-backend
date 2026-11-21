@@ -1,5 +1,6 @@
 package org.example.backend.annonce.service;
 
+import org.example.backend.user.entity.StatutValidation;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.annonce.dto.AnnonceDTO;
 import org.example.backend.annonce.dto.AnnonceRequest;
@@ -52,7 +53,7 @@ public class AnnonceService {
     public AnnonceDTO getPublic(Long id, Long currentUserId) {
         Annonce annonce = load(id);
         boolean estAuteur = annonce.getArtisan().getId().equals(currentUserId);
-        if (!annonce.isActive() && !estAuteur) {
+        if ((!annonce.isActive() || !annonce.getArtisan().isValide()) && !estAuteur) {
             throw ResourceNotFoundException.of("Annonce", id);
         }
         return mapper.toDto(annonce);
@@ -60,7 +61,8 @@ public class AnnonceService {
 
     @Transactional(readOnly = true)
     public Page<AnnonceDTO> listerParArtisan(Long artisanId, Pageable pageable) {
-        return annonceRepository.findByArtisanIdAndActiveTrue(artisanId, pageable).map(mapper::toDto);
+        return annonceRepository.findByArtisanIdAndActiveTrueAndArtisanStatutValidation(artisanId, StatutValidation.VALIDE, pageable)
+                .map(mapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -127,7 +129,24 @@ public class AnnonceService {
 
     @Transactional
     public void supprimer(Long annonceId, Long artisanId) {
-        Annonce annonce = loadForArtisan(annonceId, artisanId);
+        supprimerDefinitivement(loadForArtisan(annonceId, artisanId));
+    }
+
+    // ---------- administration ----------
+
+    @Transactional
+    public AnnonceDTO changerVisibiliteAdmin(Long annonceId, boolean active) {
+        Annonce annonce = load(annonceId);
+        annonce.setActive(active);
+        return mapper.toDto(annonce);
+    }
+
+    @Transactional
+    public void supprimerAdmin(Long annonceId) {
+        supprimerDefinitivement(load(annonceId));
+    }
+
+    private void supprimerDefinitivement(Annonce annonce) {
         List<String> urls = annonce.getImages().stream().map(AnnonceImage::getUrl).toList();
         annonceRepository.delete(annonce);
         urls.forEach(storageService::delete);
