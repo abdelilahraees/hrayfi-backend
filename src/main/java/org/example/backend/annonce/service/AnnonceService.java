@@ -1,6 +1,5 @@
 package org.example.backend.annonce.service;
 
-import org.example.backend.user.entity.StatutValidation;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.annonce.dto.AnnonceDTO;
 import org.example.backend.annonce.dto.AnnonceRequest;
@@ -16,14 +15,18 @@ import org.example.backend.common.exception.ResourceNotFoundException;
 import org.example.backend.common.exception.UnauthorizedActionException;
 import org.example.backend.storage.FileStorageService;
 import org.example.backend.user.entity.Artisan;
+import org.example.backend.user.entity.StatutValidation;
 import org.example.backend.user.repository.ArtisanRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -47,6 +50,15 @@ public class AnnonceService {
     @Transactional(readOnly = true)
     public Page<AnnonceDTO> rechercher(AnnonceSearchCriteria criteria, Pageable pageable) {
         return annonceRepository.findAll(AnnonceSpecifications.search(criteria), pageable).map(mapper::toDto);
+    }
+
+    /** Jusqu'à 3 annonces mises en avant correspondant aux filtres, dans un ordre qui tourne à chaque appel. */
+    @Transactional(readOnly = true)
+    public List<AnnonceDTO> sponsorisees(AnnonceSearchCriteria criteria) {
+        List<AnnonceDTO> liste = new ArrayList<>(annonceRepository
+                .findAll(AnnonceSpecifications.sponsorisees(criteria), PageRequest.of(0, 12)).map(mapper::toDto).getContent());
+        Collections.shuffle(liste);
+        return liste.subList(0, Math.min(3, liste.size()));
     }
 
     @Transactional(readOnly = true)

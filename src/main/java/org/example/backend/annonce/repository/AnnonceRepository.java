@@ -12,6 +12,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
@@ -50,6 +51,12 @@ public interface AnnonceRepository extends JpaRepository<Annonce, Long>, JpaSpec
     List<MetierCountDTO> countByMetier();
 
     long countByActiveTrue();
+
+    boolean existsByArtisanIdAndActiveTrueAndSponsoriseJusquAuAfter(Long artisanId, Instant date);
+
+    long countBySponsoriseJusquAuAfter(Instant date);
+
+    List<Annonce> findByArtisanIdOrderByCreatedAtDesc(Long artisanId);
 
     /** Administration : toutes les annonces (en ligne ou masquées), quel que soit le statut de l'artisan. */
     @EntityGraph(attributePaths = {"artisan"})

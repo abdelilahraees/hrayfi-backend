@@ -9,6 +9,7 @@ public record RegisterClientRequest(
         @NotBlank @Size(min = 8, max = 100) String password,
         @NotBlank String nom,
         @NotBlank String prenom,
+        @Size(max = 25) String telephone,
         String adresse,
         String preferences
 ) {}

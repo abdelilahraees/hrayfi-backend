@@ -16,6 +16,7 @@ public record MeDTO(
         String nom,
         String prenom,
         Role role,
+        String telephone,
         Instant createdAt,
         String adresse,
         String preferences,
@@ -23,5 +24,9 @@ public record MeDTO(
         BigDecimal tarifHoraire,
         String description,
         String ville,
-        Disponibilite disponibilite
+        Disponibilite disponibilite,
+        Double latitude,
+        Double longitude,
+        /** true : centre de la ville déclarée, pas encore précisé sur la carte */
+        Boolean positionApprox
 ) {}
