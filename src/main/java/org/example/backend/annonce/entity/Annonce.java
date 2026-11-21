@@ -57,6 +57,10 @@ public class Annonce {
     @Builder.Default
     private boolean active = true;
 
+    /** Mise en avant payée : affichée en tête des résultats jusqu'à cette date */
+    @Column(name = "sponsorise_jusqu_au")
+    private Instant sponsoriseJusquAu;
+
     @Column(name = "note_moyenne", nullable = false, precision = 3, scale = 2)
     @Builder.Default
     private BigDecimal noteMoyenne = BigDecimal.ZERO;
@@ -84,5 +88,9 @@ public class Annonce {
                 .url(url)
                 .position(images.size())
                 .build());
+    }
+
+    public boolean isSponsorisee() {
+        return sponsoriseJusquAu != null && sponsoriseJusquAu.isAfter(Instant.now());
     }
 }

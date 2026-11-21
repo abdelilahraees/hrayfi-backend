@@ -6,6 +6,8 @@ import org.example.backend.user.entity.StatutValidation;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
+
 import java.math.BigDecimal;
 
 /**
@@ -23,6 +25,11 @@ public final class AnnonceSpecifications {
                 .and(equalsIgnoreCase("ville", c.ville()))
                 .and(noteMin(c.noteMin()))
                 .and(budget(c.prixMax()));
+    }
+
+    /** Recherche restreinte aux annonces mises en avant en ce moment (emplacements en tête des résultats). */
+    public static Specification<Annonce> sponsorisees(AnnonceSearchCriteria c) {
+        return search(c).and((root, query, cb) -> cb.greaterThan(root.get("sponsoriseJusquAu"), Instant.now()));
     }
 
     private static Specification<Annonce> active() {

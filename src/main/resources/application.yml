@@ -54,6 +54,8 @@ server:
 app:
   seed-demo: ${SEED_DEMO:false}   # true : crée des artisans, annonces et avis de démonstration
   seed-fake: ${SEED_FAKE:false}   # true : ajoute des données factices en volume (pagination, tableaux de bord)
+  pro:
+    offert-jours: ${PRO_OFFERT_JOURS:90}   # offre Pro offerte à la validation d'un artisan
   security:
     jwt:
       # Secret base64. Générer avec : openssl rand -base64 48

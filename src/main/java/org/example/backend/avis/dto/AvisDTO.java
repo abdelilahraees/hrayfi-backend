@@ -11,5 +11,11 @@ public record AvisDTO(
         Integer note,
         String commentaire,
         Instant createdAt,
-        Instant updatedAt
-) {}
+        Instant updatedAt,
+        /** L'auteur a eu une intervention terminée avec cet artisan via Hrayfi */
+        boolean verifie
+) {
+    public AvisDTO avecVerifie(boolean v) {
+        return new AvisDTO(id, annonceId, annonceTitre, clientId, clientNomComplet, note, commentaire, createdAt, updatedAt, v);
+    }
+}

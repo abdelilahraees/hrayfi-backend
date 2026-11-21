@@ -43,6 +43,12 @@ public class AnnonceController {
         return annonceService.rechercher(criteria, pageable);
     }
 
+    @GetMapping("/sponsorisees")
+    @Operation(summary = "Annonces mises en avant (3 au plus) pour les mêmes filtres que la recherche")
+    public List<AnnonceDTO> sponsorisees(AnnonceSearchCriteria criteria) {
+        return annonceService.sponsorisees(criteria);
+    }
+
     @GetMapping("/metiers")
     @Operation(summary = "Métiers ayant au moins une annonce, avec leur nombre d'annonces")
     public List<MetierCountDTO> metiers() {

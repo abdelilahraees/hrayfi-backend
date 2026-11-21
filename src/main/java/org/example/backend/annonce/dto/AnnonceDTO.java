@@ -19,7 +19,10 @@ public record AnnonceDTO(
         int nbAvis,
         List<ImageDTO> images,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        /** Mise en avant payée en cours */
+        boolean sponsorisee,
+        Instant sponsoriseJusquAu
 ) {
     public record ImageDTO(Long id, String url) {}
 }
