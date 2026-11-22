@@ -15,14 +15,18 @@ import org.example.backend.common.exception.ResourceNotFoundException;
 import org.example.backend.common.exception.UnauthorizedActionException;
 import org.example.backend.storage.FileStorageService;
 import org.example.backend.user.entity.Artisan;
+import org.example.backend.user.entity.StatutValidation;
 import org.example.backend.user.repository.ArtisanRepository;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -48,11 +52,20 @@ public class AnnonceService {
         return annonceRepository.findAll(AnnonceSpecifications.search(criteria), pageable).map(mapper::toDto);
     }
 
+    /** Jusqu'à 3 annonces mises en avant correspondant aux filtres, dans un ordre qui tourne à chaque appel. */
+    @Transactional(readOnly = true)
+    public List<AnnonceDTO> sponsorisees(AnnonceSearchCriteria criteria) {
+        List<AnnonceDTO> liste = new ArrayList<>(annonceRepository
+                .findAll(AnnonceSpecifications.sponsorisees(criteria), PageRequest.of(0, 12)).map(mapper::toDto).getContent());
+        Collections.shuffle(liste);
+        return liste.subList(0, Math.min(3, liste.size()));
+    }
+
     @Transactional(readOnly = true)
     public AnnonceDTO getPublic(Long id, Long currentUserId) {
         Annonce annonce = load(id);
         boolean estAuteur = annonce.getArtisan().getId().equals(currentUserId);
-        if (!annonce.isActive() && !estAuteur) {
+        if ((!annonce.isActive() || !annonce.getArtisan().isValide()) && !estAuteur) {
             throw ResourceNotFoundException.of("Annonce", id);
         }
         return mapper.toDto(annonce);
@@ -60,7 +73,8 @@ public class AnnonceService {
 
     @Transactional(readOnly = true)
     public Page<AnnonceDTO> listerParArtisan(Long artisanId, Pageable pageable) {
-        return annonceRepository.findByArtisanIdAndActiveTrue(artisanId, pageable).map(mapper::toDto);
+        return annonceRepository.findByArtisanIdAndActiveTrueAndArtisanStatutValidation(artisanId, StatutValidation.VALIDE, pageable)
+                .map(mapper::toDto);
     }
 
     @Transactional(readOnly = true)
@@ -127,7 +141,24 @@ public class AnnonceService {
 
     @Transactional
     public void supprimer(Long annonceId, Long artisanId) {
-        Annonce annonce = loadForArtisan(annonceId, artisanId);
+        supprimerDefinitivement(loadForArtisan(annonceId, artisanId));
+    }
+
+    // ---------- administration ----------
+
+    @Transactional
+    public AnnonceDTO changerVisibiliteAdmin(Long annonceId, boolean active) {
+        Annonce annonce = load(annonceId);
+        annonce.setActive(active);
+        return mapper.toDto(annonce);
+    }
+
+    @Transactional
+    public void supprimerAdmin(Long annonceId) {
+        supprimerDefinitivement(load(annonceId));
+    }
+
+    private void supprimerDefinitivement(Annonce annonce) {
         List<String> urls = annonce.getImages().stream().map(AnnonceImage::getUrl).toList();
         annonceRepository.delete(annonce);
         urls.forEach(storageService::delete);

@@ -1,5 +1,7 @@
 package org.example.backend.auth;
 
+import org.example.backend.common.exception.UnauthorizedActionException;
+import org.example.backend.common.util.Telephone;
 import lombok.RequiredArgsConstructor;
 import org.example.backend.auth.dto.*;
 import org.example.backend.common.exception.BusinessException;
@@ -39,6 +41,7 @@ public class AuthService {
                 .nom(req.nom())
                 .prenom(req.prenom())
                 .role(Role.CLIENT)
+                .telephone(Telephone.normaliser(req.telephone()))
                 .adresse(req.adresse())
                 .preferences(req.preferences())
                 .build();
@@ -57,6 +60,7 @@ public class AuthService {
                 .nom(req.nom())
                 .prenom(req.prenom())
                 .role(Role.ARTISAN)
+                .telephone(Telephone.normaliser(req.telephone()))
                 .metier(req.metier())
                 .tarifHoraire(req.tarifHoraire())
                 .description(req.description())
@@ -64,16 +68,34 @@ public class AuthService {
                 .disponibilite(Disponibilite.DISPONIBLE)
                 .build();
 
+        artisan.positionnerSurVille(); // position approximative, l'artisan pourra la préciser sur la carte
         Artisan saved = artisanRepository.save(artisan);
-        return buildResponse(saved);
+        // Pas de connexion automatique : le compte doit d'abord être validé par un administrateur
+        return new AuthResponse(null, "Bearer", 0, saved.getId(), saved.getEmail(), saved.getRole(), saved.getStatutValidation());
     }
 
     public AuthResponse login(LoginRequest req) {
         Authentication auth = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.email(), req.password())
         );
-        AppUser user = ((AppUserPrincipal) auth.getPrincipal()).getUser();
-        return buildResponse(user);
+        AppUserPrincipal principal = (AppUserPrincipal) auth.getPrincipal();
+        if (!principal.isActif()) {
+            throw new UnauthorizedActionException(messageCompteInactif((Artisan) principal.getUser()));
+        }
+        return buildResponse(principal.getUser());
+    }
+
+    private String messageCompteInactif(Artisan artisan) {
+        String brut = artisan.getMotifRefus() == null ? "" : artisan.getMotifRefus().trim();
+        String motif = brut.isEmpty() ? "" : " Motif : " + brut + (brut.matches(".*[.!?]$") ? "" : ".");
+        return switch (artisan.getStatutValidation()) {
+            case EN_ATTENTE -> "Votre compte artisan est en cours de vérification par l'équipe Hrayfi (24 à 48 h en général). "
+                    + "Vous pourrez vous connecter dès sa validation.";
+            case REFUSE -> "Votre demande de compte artisan n'a pas été acceptée." + motif
+                    + " Pour plus d'informations, écrivez à contact@hrayfi.ma.";
+            case SUSPENDU -> "Votre compte artisan est suspendu." + motif + " Contactez contact@hrayfi.ma pour le réactiver.";
+            case VALIDE -> "Compte actif";
+        };
     }
 
     private void guardEmailAvailable(String email) {
@@ -90,7 +112,8 @@ public class AuthService {
                 jwtProperties.expirationMs(),
                 user.getId(),
                 user.getEmail(),
-                user.getRole()
+                user.getRole(),
+                user instanceof Artisan a ? a.getStatutValidation() : null
         );
     }
 }

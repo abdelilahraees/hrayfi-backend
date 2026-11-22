@@ -8,6 +8,8 @@ import org.example.backend.avis.dto.AvisRequest;
 import org.example.backend.avis.entity.AvisAnnonce;
 import org.example.backend.avis.mapper.AvisMapper;
 import org.example.backend.avis.repository.AvisAnnonceRepository;
+import org.example.backend.demande.entity.StatutDemande;
+import org.example.backend.demande.repository.DemandeServiceRepository;
 import org.example.backend.common.exception.ResourceNotFoundException;
 import org.example.backend.common.exception.UnauthorizedActionException;
 import org.example.backend.common.util.AggregateRows;
@@ -37,6 +39,7 @@ public class AvisService {
     private final ClientRepository clientRepository;
     private final AvisMapper mapper;
     private final NotificationService notificationService;
+    private final DemandeServiceRepository demandeRepository;
 
     /** Crée l'avis du client sur l'annonce, ou met à jour celui qu'il a déjà laissé. */
     @Transactional
@@ -68,7 +71,7 @@ public class AvisService {
                     "/annonces/" + annonce.getId()
             );
         }
-        return mapper.toDto(saved);
+        return versDto(saved);
     }
 
     @Transactional
@@ -78,6 +81,17 @@ public class AvisService {
         if (!avis.getClient().getId().equals(clientId)) {
             throw new UnauthorizedActionException("Vous ne pouvez supprimer que vos propres avis");
         }
+        supprimerEtRecalculer(avis);
+    }
+
+    /** Modération : un administrateur peut retirer n'importe quel avis. */
+    @Transactional
+    public void supprimerAdmin(Long avisId) {
+        supprimerEtRecalculer(avisRepository.findById(avisId)
+                .orElseThrow(() -> ResourceNotFoundException.of("Avis", avisId)));
+    }
+
+    private void supprimerEtRecalculer(AvisAnnonce avis) {
         Annonce annonce = avis.getAnnonce();
         avisRepository.delete(avis);
         avisRepository.flush();
@@ -86,17 +100,24 @@ public class AvisService {
 
     @Transactional(readOnly = true)
     public Page<AvisDTO> listerParAnnonce(Long annonceId, Pageable pageable) {
-        return avisRepository.findByAnnonceId(annonceId, pageable).map(mapper::toDto);
+        return avisRepository.findByAnnonceId(annonceId, pageable).map(this::versDto);
     }
 
     @Transactional(readOnly = true)
     public Page<AvisDTO> listerParArtisan(Long artisanId, Pageable pageable) {
-        return avisRepository.findByAnnonceArtisanId(artisanId, pageable).map(mapper::toDto);
+        return avisRepository.findByAnnonceArtisanId(artisanId, pageable).map(this::versDto);
     }
 
     @Transactional(readOnly = true)
     public Page<AvisDTO> mesAvis(Long clientId, Pageable pageable) {
-        return avisRepository.findByClientId(clientId, pageable).map(mapper::toDto);
+        return avisRepository.findByClientId(clientId, pageable).map(this::versDto);
+    }
+
+    /** Avis « vérifié » : son auteur a eu une intervention terminée avec l'artisan de l'annonce. */
+    public AvisDTO versDto(AvisAnnonce avis) {
+        boolean verifie = demandeRepository.existsByClientIdAndArtisanIdAndStatut(
+                avis.getClient().getId(), avis.getAnnonce().getArtisan().getId(), StatutDemande.TERMINEE);
+        return mapper.toDto(avis).avecVerifie(verifie);
     }
 
     private void recalculerNote(Annonce annonce) {

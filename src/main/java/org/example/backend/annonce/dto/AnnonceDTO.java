@@ -19,7 +19,12 @@ public record AnnonceDTO(
         int nbAvis,
         List<ImageDTO> images,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        /** Mise en avant payée en cours */
+        boolean sponsorisee,
+        Instant sponsoriseJusquAu,
+        /** L'artisan a une offre Pro en cours (badge « Artisan Pro ») */
+        boolean artisanPro
 ) {
     public record ImageDTO(Long id, String url) {}
 }

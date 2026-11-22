@@ -60,4 +60,16 @@ public interface DemandeServiceRepository extends JpaRepository<DemandeService, 
     long countByArtisanIdAndStatutInAndUpdatedAtAfter(Long artisanId,
                                                       List<StatutDemande> statuts,
                                                       Instant debut);
+
+    long countByStatut(StatutDemande statut);
+
+    boolean existsByClientIdAndArtisanIdAndStatut(Long clientId, Long artisanId, StatutDemande statut);
+
+    /** Administration : toutes les demandes, filtrées par statut (null = toutes). */
+    @EntityGraph(attributePaths = {"client", "artisan", "annonce"})
+    @Query("SELECT d FROM DemandeService d WHERE (:statut IS NULL OR d.statut = :statut)")
+    Page<DemandeService> adminSearch(@Param("statut") StatutDemande statut, Pageable pageable);
+
+    @Query("SELECT COALESCE(SUM(d.prixFinal), 0) FROM DemandeService d WHERE d.statut = org.example.backend.demande.entity.StatutDemande.TERMINEE")
+    BigDecimal volumeAffaires();
 }
