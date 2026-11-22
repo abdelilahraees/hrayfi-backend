@@ -24,7 +24,9 @@ public record AdminStatsDTO(
         long aRelancer,
         long annoncesMisesEnAvant,
         /** 6 derniers mois, du plus ancien au plus récent */
-        List<RevenuMois> revenusParMois
+        List<RevenuMois> revenusParMois,
+        /** Demandes d'offre envoyées par les artisans, à traiter */
+        long demandesOffreEnAttente
 ) {
     public record RevenuMois(int annee, int mois, BigDecimal total) {}
 }

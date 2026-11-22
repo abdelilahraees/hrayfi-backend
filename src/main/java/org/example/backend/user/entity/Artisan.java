@@ -77,6 +77,12 @@ public class Artisan extends AppUser {
         return proOffert ? StatutPro.OFFERT : StatutPro.PAYE;
     }
 
+    /** Pro en cours (offert ou payé) : donne le badge « Artisan Pro » */
+    public boolean isProActif() {
+        StatutPro s = getStatutPro();
+        return s == StatutPro.OFFERT || s == StatutPro.PAYE;
+    }
+
     public boolean isValide() {
         return statutValidation == StatutValidation.VALIDE;
     }

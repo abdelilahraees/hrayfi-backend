@@ -9,5 +9,7 @@ public enum NotificationType {
     NOUVEL_AVIS,
     NOUVEAU_MESSAGE,
     COMPTE_VALIDE,
-    PAIEMENT_RECU
+    PAIEMENT_RECU,
+    DEMANDE_OFFRE,
+    DEMANDE_OFFRE_TRAITEE
 }

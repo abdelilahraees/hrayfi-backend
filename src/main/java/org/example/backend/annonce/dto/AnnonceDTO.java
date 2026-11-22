@@ -22,7 +22,9 @@ public record AnnonceDTO(
         Instant updatedAt,
         /** Mise en avant payée en cours */
         boolean sponsorisee,
-        Instant sponsoriseJusquAu
+        Instant sponsoriseJusquAu,
+        /** L'artisan a une offre Pro en cours (badge « Artisan Pro ») */
+        boolean artisanPro
 ) {
     public record ImageDTO(Long id, String url) {}
 }

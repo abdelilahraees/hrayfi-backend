@@ -10,7 +10,11 @@ import org.example.backend.annonce.dto.AnnonceDTO;
 import org.example.backend.avis.dto.AvisDTO;
 import org.example.backend.demande.dto.DemandeServiceDTO;
 import org.example.backend.demande.entity.StatutDemande;
+import org.example.backend.paiement.dto.DemandeAbonnementDTO;
 import org.example.backend.paiement.dto.EnregistrerPaiementRequest;
+import org.example.backend.paiement.dto.TraiterDemandeRequest;
+import org.example.backend.paiement.entity.StatutDemandeAbonnement;
+import org.example.backend.paiement.service.DemandeAbonnementService;
 import org.example.backend.security.AppUserPrincipal;
 import org.example.backend.user.entity.Role;
 import org.example.backend.user.entity.StatutValidation;
@@ -31,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final DemandeAbonnementService demandeAbonnementService;
 
     @GetMapping("/stats")
     @Operation(summary = "Chiffres clés de la plateforme")
@@ -80,6 +85,21 @@ public class AdminController {
     @Operation(summary = "Notes de suivi de l'équipe sur un artisan (appels, relances)")
     public AdminCompteDTO note(@PathVariable Long id, @Valid @RequestBody NoteAdminRequest req) {
         return adminService.modifierNote(id, req.note());
+    }
+
+    @GetMapping("/demandes-offre")
+    @Operation(summary = "Demandes d'offre des artisans (EN_ATTENTE, CONTACTEE, PAYEE, REFUSEE, ANNULEE)")
+    public Page<DemandeAbonnementDTO> demandesOffre(@RequestParam(required = false) StatutDemandeAbonnement statut,
+                                                    @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.ASC)
+                                                    Pageable pageable) {
+        return demandeAbonnementService.liste(statut, pageable);
+    }
+
+    @PatchMapping("/demandes-offre/{id}")
+    @Operation(summary = "Décider : contactée, payée (enregistre le paiement), refusée ou suspendre le compte")
+    public DemandeAbonnementDTO traiterDemande(@AuthenticationPrincipal AppUserPrincipal principal, @PathVariable Long id,
+                                               @Valid @RequestBody TraiterDemandeRequest req) {
+        return demandeAbonnementService.traiter(principal.getId(), id, req);
     }
 
     @GetMapping("/utilisateurs")
