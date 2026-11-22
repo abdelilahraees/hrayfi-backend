@@ -22,6 +22,8 @@ import org.example.backend.paiement.dto.EnregistrerPaiementRequest;
 import org.example.backend.paiement.dto.PaiementMapper;
 import org.example.backend.paiement.entity.ObjetPaiement;
 import org.example.backend.paiement.entity.Paiement;
+import org.example.backend.paiement.entity.StatutDemandeAbonnement;
+import org.example.backend.paiement.repository.DemandeAbonnementRepository;
 import org.example.backend.paiement.repository.PaiementRepository;
 import org.example.backend.user.entity.*;
 import org.example.backend.user.repository.AppUserRepository;
@@ -66,6 +68,7 @@ public class AdminService {
     private final AnnonceMapper annonceMapper;
     private final DemandeServiceMapper demandeMapper;
     private final PaiementRepository paiementRepository;
+    private final DemandeAbonnementRepository demandeAbonnementRepository;
 
     /** Durée de l'offre Pro offerte à la validation d'un artisan */
     @Value("${app.pro.offert-jours:90}")
@@ -100,7 +103,8 @@ public class AdminService {
                 artisanRepository.countByStatutValidationAndProOffertAndProJusquAuAfter(StatutValidation.VALIDE, true, Instant.now()),
                 artisanRepository.countARelancer(Instant.now().plus(RELANCE_JOURS, ChronoUnit.DAYS)),
                 annonceRepository.countBySponsoriseJusquAuAfter(Instant.now()),
-                revenusParMois()
+                revenusParMois(),
+                demandeAbonnementRepository.countByStatut(StatutDemandeAbonnement.EN_ATTENTE)
         );
     }
 
@@ -189,6 +193,13 @@ public class AdminService {
      */
     @Transactional
     public AdminCompteDetailDTO enregistrerPaiement(Long adminId, Long artisanId, EnregistrerPaiementRequest req) {
+        enregistrer(adminId, artisanId, req);
+        return compte(artisanId);
+    }
+
+    /** Enregistre le paiement et applique son effet ; utilisé aussi quand une demande d'offre est payée. */
+    @Transactional
+    public Paiement enregistrer(Long adminId, Long artisanId, EnregistrerPaiementRequest req) {
         Artisan artisan = loadArtisan(artisanId);
         Annonce annonce = null;
         String message;
@@ -204,7 +215,7 @@ public class AdminService {
             artisan.setProOffert(false);
             message = "Votre offre Pro est prolongée jusqu'au " + date(artisan.getProJusquAu()) + ". Merci !";
         }
-        paiementRepository.save(Paiement.builder()
+        Paiement paiement = paiementRepository.save(Paiement.builder()
                 .artisan(artisan).objet(req.objet()).montant(req.montant()).moyen(req.moyen())
                 .reference(StringUtils.hasText(req.reference()) ? req.reference().trim() : null)
                 .dureeJours(req.dureeJours()).annonce(annonce)
@@ -212,7 +223,7 @@ public class AdminService {
                 .enregistrePar(userRepository.getReferenceById(adminId))
                 .build());
         notificationService.create(artisan, NotificationType.PAIEMENT_RECU, "Paiement reçu", message, "/espace/artisan");
-        return compte(artisanId);
+        return paiement;
     }
 
     @Transactional

@@ -11,7 +11,9 @@ public record OffreDTO(
         Instant proJusquAu,
         boolean proOffert,
         List<AnnonceMiseEnAvant> misesEnAvant,
-        List<PaiementDTO> paiements
+        List<PaiementDTO> paiements,
+        /** Une demande d'offre attend la réponse de l'équipe */
+        boolean demandeEnCours
 ) {
     public record AnnonceMiseEnAvant(Long id, String titre, Instant jusquAu) {}
 }

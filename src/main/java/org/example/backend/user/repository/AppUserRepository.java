@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface AppUserRepository extends JpaRepository<AppUser, Long> {
@@ -15,6 +16,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     boolean existsByEmail(String email);
 
     long countByRole(Role role);
+
+    List<AppUser> findByRole(Role role);
 
     /** Administration : tous les comptes, filtrés par rôle (null = tous) et par texte (nom, prénom, e-mail). */
     @Query("""

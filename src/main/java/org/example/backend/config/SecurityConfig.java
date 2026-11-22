@@ -82,6 +82,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/artisans/**",
                                 "/api/annonces/**",
+                                "/api/offres/formules",
                                 "/uploads/**"
                         ).permitAll()
                         .anyRequest().authenticated()
