@@ -16,6 +16,7 @@ public interface AnnonceMapper {
     @Mapping(target = "artisanId",         source = "artisan.id")
     @Mapping(target = "artisanNomComplet", source = "artisan", qualifiedByName = "fullName")
     @Mapping(target = "noteMoyenne",       source = "noteMoyenne", qualifiedByName = "toDouble")
+    @Mapping(target = "artisanPro",        source = "artisan.proActif")
     AnnonceDTO toDto(Annonce entity);
 
     AnnonceDTO.ImageDTO toDto(AnnonceImage image);

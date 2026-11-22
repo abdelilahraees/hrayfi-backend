@@ -125,7 +125,8 @@ public class UserService {
                 a.getDescription(), a.getVille(), a.getDisponibilite(),
                 moyenne, AggregateRows.count(stats),
                 annonceRepository.countByArtisanIdAndActiveTrue(a.getId()),
-                a.getCreatedAt()
+                a.getCreatedAt(),
+                a.isProActif()
         );
     }
 

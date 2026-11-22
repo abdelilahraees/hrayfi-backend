@@ -21,5 +21,7 @@ public record ArtisanPublicDTO(
         double noteMoyenne,
         long nbAvis,
         long nbAnnonces,
-        Instant createdAt
+        Instant createdAt,
+        /** Badge « Artisan Pro » (offre Pro en cours) */
+        boolean pro
 ) {}
